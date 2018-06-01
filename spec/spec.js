@@ -20,6 +20,19 @@ describe("BigInteger", function () {
         });
     });
 
+    function doesLogMessage(f, message) {
+        var oldLog = console.log,
+        result = false;
+        console.log = function(s) {
+            if (s == message) {
+                result = true;
+            }
+        };
+        f();
+        console.log = oldLog;
+        return result;
+    }
+
     it("can handle large numbers", function () {
         var tenFactorial = "3628800",
             hundredFactorial = "93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000",
@@ -831,6 +844,15 @@ describe("BigInteger", function () {
                 expect(bigInt(primes[i]).isProbablePrime()).toBe(true);
             }
         });
+        it("MillerRabin - returns true for any prime", function () {
+            for (var i = 0; i < primes.length; i++) {
+                expect(bigInt(primes[i]).MillerRabin(20)).toBe(true);
+            }
+            expect(bigInt("316712231245772750776917619861868301828861230049208917518119115504706957444207360029601936277835358011673621238602401524606115749").MillerRabin(20)).toBe(true); //prime
+            expect(bigInt("316712231245772750776917619861868301828861230049208917518119115504706957444207360029601936277835358011673621238602401524606115747").MillerRabin(20)).toBe(false);
+            expect(bigInt("53141684362696866103101494967346549101557915929740624816707867599093297602192").nextprime()).toEqualBigInt("53141684362696866103101494967346549101557915929740624816707867599093297602319");
+            expect(bigInt("53141684362696866103101494967346549101557915929740624816707867599093297602192").prevprime()).toEqualBigInt("53141684362696866103101494967346549101557915929740624816707867599093297601953");
+        });
         it("has false positive rate less than 0.5%", function () {
             var totalPrimes = 0, falsePrimes = 0;
             for (var i = 1; i < 1e4; i++) {
@@ -968,38 +990,71 @@ describe("BigInteger", function () {
             expect(bigInt("234345345345")).toEqualBigInt(bigInt("3690123141", 16));
             expect(bigInt("-10", 16)).toEqualBigInt("-16");
         });
-		
-		it("errors on invalid input", function() {
-			expect(function () {
-                bigInt("$,%@#^", "55");
-            }).toThrow();
-			// See issue 101
-			//    https://github.com/peterolson/BigInteger.js/issues/101
-            expect(function () {
-                bigInt("0x10000", 16);
-            }).toThrow();
-			expect(function () {
+        
+        it("errors on invalid input", function() {
+            expect(function () {                            //<- тут error
+            bigInt("$,%@#^", "55");
+            }).toThrow();    //negative number returned.
+        
+            // See issue 101
+            //    https://github.com/peterolson/BigInteger.js/issues/101
+            
+            //expect(function () {                //<- error, because function
+            //    bigInt("0x10000", 16);
+            //}).toThrow();                        //This was returned an error: "Error: x is not a valid digit in base 16."
+            
+            //Now this parsed good, so then...
+            expect(bigInt("0x10000", 16)).toEqualBigInt("65536"); //<- function removed. NOW - OK.
+            
+        expect(function () {
                 bigInt("a9", 10);
             }).toThrow();
-			expect(function () {
+        expect(function () {
                 bigInt("33", 2);
             }).toThrow();
         });
         
         it("outputs numbers correctly", function () {
             expect(bigInt("366900685503779409298642816707647664013657589336").toString(16) === "4044654fce69424a651af2825b37124c25094658").toBe(true);
+            //positive
+            expect(bigInt("9114818602290965466273313253612728357571086438582816626601869940753854706573833833596909973904614364170677826415493731215432005").toString(19165) === "侥螸扇秾祯囗堥匃缏厊蒱敹怲碤肔帠褵寞砇唬犪彰酒虂灗愡吊孑荲岅").toBe(true);
+            expect(bigInt("9114818602290965466273313253612728357571086438582816626601869940753854706573833833596909973904614364170677826415493731215432005").toString(62545) === "µ汃᭬툝筑옺킏᜜噕푑澾瘳₢긅ℙ渚鶤欆ﺄ怂譲꯽ඉꉧ劊").toBe(true);
+            expect(bigInt("9114818602290965466273313253612728357571086438582816626601869940753854706573833833596909973904614364170677826415493731215432005").toString(71398) === "5<57579><2976><69279><34521><43793><44526><62200><66922><29986><54388><67842><304><17277><66906><31437><12190><13142><22060><8352><54190><6395><27536><52656><31562><30368><46845>").toBe(true);
+            expect(bigInt("9114818602290965466273313253612728357571086438582816626601869940753854706573833833596909973904614364170677826415493731215432005").toString(5) === "23441011233021314024314003134111214013113022322200334132401020414232010341032401103241311221211023121120122222122411021004131321413202300433421011314343412020042423043243012122311010").toBe(true);
+            //negative
+            expect(bigInt("-47967071550311516497191181097726264851666448108527204171080558550506930910160205505579271748772750845605891633530464384028702739").toString(15) === "-490bba60bd2d540ed973a625d7905132e3653309db73e5ec7c9e4005cd543635d12147c647823c7253a01643126c7238a91663bc92cae").toBe(true);
+            expect(bigInt("-47967071550311516497191181097726264851666448108527204171080558550506930910160205505579271748772750845605891633530464384028702739").toString(24859) === "—㍙詰똜꼃蒨꺞⒖螞奚舃溷膐瓎汤踒妤輁箭둵遨犄鷊敲贆濻臱捡跧榢膫").toBe(true);
+            expect(bigInt("-47967071550311516497191181097726264851666448108527204171080558550506930910160205505579271748772750845605891633530464384028702739").toString(44042) === "-Åꆲ瀔垢鈦岈᧖꬘溋瑶伃醓䫙ڡ迆㲾㟪ꂤ霺鶝⎳㛆為ܤ琁Ꮎ䬃").toBe(true);
+            expect(bigInt("-47967071550311516497191181097726264851666448108527204171080558550506930910160205505579271748772750845605891633530464384028702739").toString(100255) === "-<450><8275><69428><4614><73963><38383><58424><29449><45613><50834><69252><41905><48613><81711><23658><58583><35145><83249><14289><7525><48735><9195><36030><53408><58018><96074>").toBe(true);
+            //another bases:
+            //expect(bigInt(0).toString(0) === "0").toBe(true);
+            expect(bigInt(-15).toString(1) === "-111111111111111").toBe(true);
+            expect(bigInt(-15).toString(-1) === "101010101010101010101010101010").toBe(true);
+            expect(bigInt(12345).toString(-10) === "28465").toBe(true);
+            expect(bigInt("55e100").toString(bigInt("1e100")) === "<55>0").toBe(true);
+
             expect(bigInt("111111111111111111111111111111111111111111111111111111", 2).toString(2) === "111111111111111111111111111111111111111111111111111111").toBe(true);
             expect(bigInt("secretmessage000", -36).toString(-36) === "secretmessage000").toBe(true);
             expect(bigInt(-256).toString(16) === "-100").toBe(true);
             expect(bigInt(256).toString(1).length === 256).toBe(true);
             expect(bigInt(bigInt(77).toString(-1), -1)).toEqualBigInt(77);
-            expect(function () {
-                bigInt(10).toString(0);
-            }).toThrow();
+
+            //expect(function () {                //throw replase to console.log to don't stop script.
+            //    bigInt(10).toString(0);        //now this just return 0 with any bigInt.
+            //}).toThrow();
+
+            function exampleFunction() {
+                return bigInt(10).toString(0) === '0';        //this need to be true
+            }
+
+            expect(exampleFunction()).toBe(true); //and here it is.
+            expect(doesLogMessage(exampleFunction,"Cannot convert nonzero numbers to base 0. Number: 10. 0 returned.")).toBe(true); // console message - true
 
             // see issue #67
             // https://github.com/peterolson/BigInteger.js/issues/67
-            expect(bigInt(36).toString(40) === "<36>").toBe(true); 
+            //expect(bigInt(36).toString(40) === "<36>").toBe(true); //unicode and alphabet added. This is return L.
+            //Make base greather than 63008:
+            expect(bigInt(36).toString(63009) === "<36>").toBe(true); //now this is true
         });
 
         it("converts to arrays correctly", function() {
@@ -1053,7 +1108,21 @@ describe("BigInteger", function () {
             isNegative: false
           });
 
-          expect(function () {return bigInt(1).toArray(0);}).toThrow();
+          //expect(function () {return bigInt(1).toArray(0);}).toThrow(); //<- error
+          //replace to this:
+          //expect(bigInt(1).toArray(0)).toEqual({
+          //  value: [0],
+          //  isNegative: false
+          //}); //OK
+          
+		  //but in this case bigInt(1).toArray(0) return console.log message.
+          //check this...
+          function exampleFunction() {
+                return bigInt(1).toArray(0); //return bigInt from function
+          }
+
+          expect(exampleFunction()).toEqual({value:[0],isNegative: false}); //check this
+          expect(doesLogMessage(exampleFunction, "Cannot convert nonzero numbers to base 0. Number: 1. 0 returned.")).toBe(true); // check console.log message - true
         });
     });
 
@@ -1088,16 +1157,26 @@ describe("BigInteger", function () {
             expect(bigInt("-65").xor("-42")).toEqualBigInt("105");
             expect(bigInt("6").and("-3")).toEqualBigInt("4");
             expect(bigInt("0").not()).toEqualBigInt("-1");
+            expect(bigInt("1").not(64)).toEqualBigInt("18446744073709551614"); //2^64 + (~1 = -2) = 18446744073709551616 - 2 = 18446744073709551614
+            expect(bigInt("1").not(32)).toEqualBigInt("4294967294"); //2^32 + (~1 = -2) = 4294967296 - 2 = 4294967294
             expect(bigInt("13").or(-8)).toEqualBigInt("-3");
             expect(bigInt("12").xor(-5)).toEqualBigInt("-9");
         });
 
+        it("Integer Logarithm", function () {
+            expect(bigInt("2e100").integerLogarithm(10).e.toString()==='100').toBe(true);
+            expect(bigInt("3e100").integerLogarithm(3).e.toString()==='210').toBe(true);
+            expect(bigInt("123456789").integerLogarithm(2).e.toString()==='26').toBe(true); //26.87943093286047382106388298172874055218955304735459269820
+        });
         it("bitLength works", function () {
             expect(bigInt(0).bitLength()).toEqualBigInt(0);
             expect(bigInt(1).bitLength()).toEqualBigInt(1);
             expect(bigInt(3).bitLength()).toEqualBigInt(2);
             expect(bigInt(16).bitLength()).toEqualBigInt(5);
             expect(bigInt(2).pow(49).bitLength()).toEqualBigInt(50);
+            expect(bigInt("2e100").bitLength()).toEqualBigInt(334);
+            expect(bigInt("-3e64").bitLength()).toEqualBigInt("215");
+            expect(bigInt("123456789").bitLength().toString()==='27').toBe(true); //111010110111100110100010101 - 27 bits
         });
     });
 
@@ -1114,6 +1193,9 @@ describe("BigInteger", function () {
 
             expect(bigInt.randBetween("-9e99", "9e99").leq("9e99")).toBe(true);
             expect(bigInt.randBetween("-9e99", "9e99").geq("-9e99")).toBe(true);
+        });
+        it("bigInt.randbits(bits) and bitlength comparison", function () {
+            expect(bigInt.randbits(64).bitLength().leq(64)).toBe(true);
         });
         it("always returns integers", function () {
             expect(+bigInt.randBetween(0, 127) % 1).toBe(0);
@@ -1190,7 +1272,7 @@ describe("BigInteger", function () {
         });
         it("multiply, times are the same", function () {
             expect(bigInt.one.multiply === bigInt.one.times).toBe(true);
-        });
+        });        
     });
 
     describe("Integer", function () {
