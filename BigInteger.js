@@ -1016,6 +1016,15 @@ var bigInt = BigInteger = (function (undefined) {
     };
     SmallInteger.prototype.shiftRight = BigInteger.prototype.shiftRight;
 
+    BigInteger.prototype.shiftRight_to_positive = function (n, bitlength) { //equivalent <<<
+        var bitlength = (typeof bitlength === 'undefined') ? 32 : bitlength; //if undefined - false, else use this bitlength
+        if(this.isNegative() && (bitlength!==false)){
+            var ones = bigInt(1).shiftLeft(bitlength).subtract(bigInt(1));
+            return ones.add(this).shiftRight(n);
+        }else return this.shiftRight(n);
+    }
+    SmallInteger.prototype.shiftRight_to_positive = BigInteger.prototype.shiftRight_to_positive;
+
     function bitwise(x, y, fn) {
         y = parseValue(y);
         var xSign = x.isNegative(), ySign = y.isNegative();
