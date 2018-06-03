@@ -1130,6 +1130,11 @@ describe("BigInteger", function () {
         it("shifting left and right work", function () {
             expect(bigInt(-5).shiftRight(2)).toEqualBigInt(-2);
             expect(bigInt(5).shiftRight(-2)).toEqualBigInt(20);
+            expect(bigInt(-2).shiftRight(-2)).toEqualBigInt("-8");
+            expect(bigInt(-2).shiftRight_to_positive(1)).toEqualBigInt('2147483646');
+            expect(bigInt(-2).shiftRight_to_positive(1, 64)).toEqualBigInt("9223372036854775806");
+            expect(bigInt(-2).shiftRight_to_positive(1, false)).toEqualBigInt("-1");
+
             expect(bigInt(5).shiftLeft(-2)).toEqualBigInt(1);
             expect(bigInt(1024).shiftLeft(100)).toEqualBigInt("1298074214633706907132624082305024");
             expect(bigInt("2596148429267413814265248164610049").shiftRight(100)).toEqualBigInt(2048);
