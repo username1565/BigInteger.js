@@ -1040,8 +1040,7 @@ var bigInt = BigInteger = (function (undefined) {
         }
         var sqrt = a.subtract(bigInt(1));
 
-        return result =
-            (sqrt.multiply(sqrt).eq(this)) //if this is square root
+        return (sqrt.multiply(sqrt).eq(this)) //if this is square root
             ? sqrt						//return this
             : [sqrt, this.subtract(sqrt.multiply(sqrt))]; //or return this with difference
             //In this case n = sqrt^2 + difference and sqrt^2 is the biggest square, lower n.	
