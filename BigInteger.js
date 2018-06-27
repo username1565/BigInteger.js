@@ -1026,6 +1026,7 @@ var bigInt = BigInteger = (function (undefined) {
     SmallInteger.prototype.shiftRight_to_positive = BigInteger.prototype.shiftRight_to_positive;
     
     BigInteger.prototype.sqrt = function() {//find whole square root from biggest square
+        if(n.isNegative()){console.log('Cann't calculate square root from negative number'); return false;}
         var a = bigInt(1);
         var b = this.shiftRight(5).add(bigInt(8));
         var mid;
