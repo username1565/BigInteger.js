@@ -1024,6 +1024,29 @@ var bigInt = BigInteger = (function (undefined) {
         }else return this.shiftRight(n);
     }
     SmallInteger.prototype.shiftRight_to_positive = BigInteger.prototype.shiftRight_to_positive;
+    
+    BigInteger.prototype.sqrt = function() {//find whole square root from biggest square
+        var a = bigInt(1);
+        var b = this.shiftRight(5).add(bigInt(8));
+        var mid;
+
+        while (b.compareTo(a) >= 0) {
+            mid = a.add(b).shiftRight(1);
+            if (mid.multiply(mid).compareTo(this) > 0) {
+                b = mid.subtract(bigInt(1));
+            } else {
+                a = mid.add(bigInt(1));
+            }
+        }
+        var sqrt = a.subtract(bigInt(1));
+
+        return result =
+            (sqrt.multiply(sqrt).eq(this)) //if this is square root
+            ? sqrt						//return this
+            : [sqrt, this.subtract(sqrt.multiply(sqrt))]; //or return this with difference
+            //In this case n = sqrt^2 + difference and sqrt^2 is the biggest square, lower n.	
+    }
+    SmallInteger.prototype.sqrt = BigInteger.prototype.sqrt;
 
     function bitwise(x, y, fn) {
         y = parseValue(y);
