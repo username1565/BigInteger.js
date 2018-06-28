@@ -1,0 +1,51 @@
+<head>
+  <link rel="stylesheet" type="text/css" href="pollard_rho.css">
+</head>
+
+<script src="../BigInteger.js"></script>
+<script src="pollard_rho.js"></script>
+
+<div class="outer">
+  <div class="middle">
+    <div class="inner">
+      <div class="paddingWrapper">
+        <center>
+          <p class="title">
+            Enter your number to factor below:
+          </p>
+			<select id="algo" title="Select factorization algorithm...
+
+Warning!
+This algorithms can working so long, if number have prime factors bitlength 70 bit (over 2^70)">
+				<option disabled>Select algorithm</option>
+				<option selected value="Pollard-rho">Pollard-rho</option>
+				<option value="Pollard-rho+random">Pollard-rho+random</option>
+				<option value="Pollard-rho+Brent">Pollard-rho+Brent</option>
+			</select>		  
+          <input id="input" type="text" title="Input the number for factoring... Only whole integer, without."/>
+          <button type="button" onClick="getPrimeFactorization();" title="Factorize number!">
+            Factor!
+          </button>
+          <p>	And... Just wait for factorization...<br>
+				<small>(See console.log(F12 button) to see process of factorization.)</small><p>
+		  <p id="result"/>
+          <p id="product" />
+        </center>
+      </div>
+      <div id="warningDiv" class="paddingWrapper">
+        <p id="warning" style="display: none;" >
+			*** This tool only guarantees accurate factorization up to 15 digits as JavaScript considers Integers accurate to 15 digits.<br>
+			That being said sometimes it does correctly factor some larger Integers whereas others fail.<br>
+			<b>For an input with more than 15 digits, compare your input to the product</b><br>
+			to evaulate whether an approximation was made in the calculation.<br>
+          <br/>
+          <br/>
+          <!--
+			Still trying to identify why some are approximated and some work out.
+			Preliminary tests indicate that large integers with a lot of small factors fail whereas large integers with fewer small factors succeed.
+			-->
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
