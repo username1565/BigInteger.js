@@ -18,9 +18,9 @@
 Warning!
 This algorithms can working so long, if number have prime factors bitlength 70 bit (over 2^70)">
 				<option disabled>Select algorithm</option>
-				<option selected value="Pollard-rho">Pollard-rho</option>
-				<option value="Pollard-rho+random">Pollard-rho+random</option>
-				<option value="Pollard-rho+Brent">Pollard-rho+Brent</option>
+				<option value="Pollard-rho">Pollard-rho (standart)</option>
+				<option value="Pollard-rho+random">Pollard-rho+random (random in each iteration)</option>
+				<option selected value="Pollard-rho+Brent">Pollard-rho+Brent (faster)</option>
 			</select>		  
           <input id="input" type="text" title="Input the number for factoring... Only whole integer, without."/>
           <button type="button" onClick="getPrimeFactorization();" title="Factorize number!">
