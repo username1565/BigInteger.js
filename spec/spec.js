@@ -449,6 +449,76 @@ describe("BigInteger", function () {
             expect(bigInt("50000005000000").times("10000001")).toEqualBigInt("500000100000005000000");
         });
     });
+	
+	//https://github.com/peterolson/BigInteger.js/issues/146
+	describe("Test square root", function () {
+        it("floor", function () {
+			//n = 2, √n = √2 = 1.4142135623730951
+            expect(bigInt('2').sqrt()[0]).toEqualBigInt('1'); //floor square root = 1
+			expect(bigInt('2').sqrt()[1]).toEqualBigInt('1'); //difference = 1 (2 - 1^2)
+			expect(bigInt('2').sqrt()[0].pow('2').add(bigInt('2').sqrt()[1])).toEqualBigInt('2'); //(√n)^2 + difference === n
+
+			//n = 3, √n = 1.7320508075688772
+			expect(bigInt('3').sqrt()[0]).toEqualBigInt('1'); //floor square root = 1
+			expect(bigInt('3').sqrt()[1]).toEqualBigInt('2'); //difference = 2 (3 - 1^2)
+			expect(bigInt('3').sqrt()[0].pow('2').add(bigInt('3').sqrt()[1])).toEqualBigInt('3'); //(√n)^2 + difference === n
+        });
+
+        it("ceil", function () {
+			//n = 2, √n = √2 = 1.4142135623730951
+            expect(bigInt('2').sqrt('ceil')[0]).toEqualBigInt('2');  //ceil square root = 2
+			expect(bigInt('2').sqrt('ceil')[1]).toEqualBigInt('-2'); //difference = -2 (2 - 2^2)
+			expect(bigInt('2').sqrt('ceil')[0].pow('2').add(bigInt('2').sqrt('ceil')[1])).toEqualBigInt('2'); //(2)^2 + (-2) = 2 === n
+
+			//n = 3, √n = 1.7320508075688772
+			expect(bigInt('3').sqrt('ceil')[0]).toEqualBigInt('2');  //ceil square root = 2
+			expect(bigInt('3').sqrt('ceil')[1]).toEqualBigInt('-1'); //difference = -1 (3 - 2^2)
+			expect(bigInt('3').sqrt('ceil')[0].pow('2').add(bigInt('3').sqrt('ceil')[1])).toEqualBigInt('3'); //(2)^2 + -1 = 3 === n
+        });
+
+        it("round", function () {
+			//n = 6, √n = √6 = 2.449489742783178
+            expect(bigInt('6').sqrt('round')[0]).toEqualBigInt('2');  //round square root = 2
+			expect(bigInt('6').sqrt('round')[1]).toEqualBigInt('2'); //difference = 2 (6 - 2^2)
+			expect(bigInt('6').sqrt('round')[0].pow('2').add(bigInt('6').sqrt('round')[1])).toEqualBigInt('6'); //(2)^2 + 2 = 6 === n
+
+			//n = 10, √n = 3.1622776601683795
+			expect(bigInt('10').sqrt('round')[0]).toEqualBigInt('3');  //round square root = 3
+			expect(bigInt('10').sqrt('round')[1]).toEqualBigInt('1'); //difference = 1 (10 - 3^2)
+			expect(bigInt('10').sqrt('round')[0].pow('2').add(bigInt('10').sqrt('round')[1])).toEqualBigInt('10'); //(3)^2 + 1 = 10 === n
+        });
+
+        it("something another as round-parameter", function () {
+			//if round !== undefined, then must be default floor
+			//n = 2, √n = √2 = 1.4142135623730951
+            expect(bigInt('2').sqrt('blah-blah-blah')[0]).toEqualBigInt('1'); //floor square root = 1
+			expect(bigInt('2').sqrt(bigInt(0))[1]).toEqualBigInt('1'); //difference = 1 (2 - 1^2)
+			expect(bigInt('2').sqrt(true)[0].pow('2').add(bigInt('2').sqrt(false)[1])).toEqualBigInt('2'); //(√n)^2 + difference === n
+
+			//n = 3, √n = 1.7320508075688772
+			expect(bigInt('3').sqrt('test')[0]).toEqualBigInt('1'); //floor square root = 1
+			expect(bigInt('3').sqrt(100500)[1]).toEqualBigInt('2'); //difference = 2 (3 - 1^2)
+			expect(bigInt('3').sqrt('')[0].pow('2').add(bigInt('3').sqrt('My_Bitcoin_Private_Key')[1])).toEqualBigInt('3'); //(√n)^2 + difference === n
+        });
+		
+        it("BigIntegers", function () {
+			//rand bigint...
+			var randint = bigInt.randBetween("1e256", "9e256");
+			//floor
+			expect(randint.sqrt()[0].pow('2').add(randint.sqrt()[1])).toEqualBigInt(randint); //(√n)^2 + difference === n
+			//ceil
+			expect(randint.sqrt('ceil')[0].pow('2').add(randint.sqrt('ceil')[1])).toEqualBigInt(randint);
+			//round
+			expect(randint.sqrt('round')[0].pow('2').add(randint.sqrt('round')[1])).toEqualBigInt(randint);
+			//something else, as parameter
+			expect(randint.sqrt(true)[0].pow('2').add(randint.sqrt('false')[1])).toEqualBigInt(randint);
+		});
+		
+        it("errors", function () {
+			expect(bigInt('0').sqrt()).toBe(false);
+			expect(bigInt('-1').sqrt()).toBe(false);
+        });
+    });
 
     describe("Division", function () {
         it("by 1 is the identity", function () {
