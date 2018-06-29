@@ -1025,9 +1025,22 @@ var bigInt = BigInteger = (function (undefined) {
     }
     SmallInteger.prototype.shiftRight_to_positive = BigInteger.prototype.shiftRight_to_positive;
     
-    BigInteger.prototype.sqrt = function() {//find whole square root from biggest square
+    //find whole square root from biggest square.
+    BigInteger.prototype.sqrt = function(round) { //return array [√n, difference]
+        //round parameter
+        //can be a strings:
+        //1. 'floor', undefined, or another other value - by default...
+        //2. 'ceil' - up rounding
+        //3. 'round' - rounding to nearest integer.
+        
         var n = this;
-		if(n.isNegative()){console.log("Cann't calculate square root from negative number"); return false;}
+        if(n.isNegative()){var err = "Cann't calculate square root from negative number";console.log(err); return false;}
+        if(n.isZero()){var err = "Cann't calculate square root from zero, because need to divide by 0!"; return false;}
+            //x = √a;        -------->    x^2 = a; x = a/x = x^2/x;
+            //x = √0 !== 0; because:     x^2 = 0; x = 0/x = 0/√0.
+            //And If √0 = 0; x = 0/0.     And here is null as devisor.
+            //Also, 0×x = 0; x = 0/0;     And x can be any one number (Or one great field set of many matrixes, like Universe?)
+
         var a = bigInt(1);
         var b = n.shiftRight(5).add(bigInt(8));
         var mid;
@@ -1040,12 +1053,44 @@ var bigInt = BigInteger = (function (undefined) {
                 a = mid.add(bigInt(1));
             }
         }
-        var sqrt = a.subtract(bigInt(1));
 
-        return (sqrt.multiply(sqrt).eq(n)) //if this is square root
-            ? sqrt						//return this
-            : [sqrt, n.subtract(sqrt.multiply(sqrt))]; //or return n with difference
-            //In this case n = sqrt^2 + difference and sqrt^2 is the biggest square, lower n.	
+        var sqrt;                             //define √n
+        if(typeof round !== 'undefined'){    //something round method was been defined
+            //What is this?
+            if(round==='ceil'){//if 'ceil'
+                if(a.subtract(bigInt('1')).pow(bigInt('2')).eq(n)){//if (a-1)^2 === n
+                    sqrt = a.subtract(bigInt('1')); //√n = (a-1)
+                }
+                else{sqrt = a;} //else leave √n as a without decrement.
+            }
+            else if(round === 'round'){ //nearest whole integer
+                //realization round for square root in BigInt (need again calculate root):
+                //    1. sqrt = √n;     //default floor
+                //    2. 100*n = 100n; //multiply n
+                //    3. //10√n = √n * √100 = √(100n) //get 10√n
+                //    if((10√n % 10) >= 5){sqrt++;} //round to nearest integer
+                
+                var n100 = n.multiply(bigInt('100'));
+                var sqrt100n_is_10sqrt_n = n100.sqrt();
+                if(sqrt100n_is_10sqrt_n[0].mod(bigInt('10')).geq(bigInt('5'))){//if ((√(100n) % 10) >= 5)
+                    sqrt = a; ////increment square root from n, just leave incremented.
+                }
+                else{//if lesser than 5
+                    sqrt = a.subtract(bigInt(1)); //floor this, decrement a.
+                }
+            }
+            else{
+                sqrt = a.subtract(bigInt(1)); //floor √n by default
+            }
+        }else{
+            sqrt = a.subtract(bigInt(1)); //floor √n by default, decrement a.
+        }
+
+        return [sqrt, n.subtract(sqrt.multiply(sqrt))];
+        //return array [√n, difference].
+        //difference = n - rounded(√n)^2
+        //In this case n = sqrt^2 + difference and sqrt^2 is the biggest square, lower n,
+        //if floor rounding for root was been by default.        
     }
     SmallInteger.prototype.sqrt = BigInteger.prototype.sqrt;
 
