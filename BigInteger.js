@@ -1094,6 +1094,69 @@ var bigInt = BigInteger = (function (undefined) {
     }
     SmallInteger.prototype.sqrt = BigInteger.prototype.sqrt;
 
+// floor(A**(1/n)), ceil and round available too.
+//call this by A.nthRoot(n); where A is bigInt.
+BigInteger.prototype.nthRoot = function (n, rounding) { // bugs - ? (test this!)
+    //"rounding" parameter
+    //can be a strings:
+    //1. 'floor', undefined, or another other value - by default...
+    //2. 'ceil' - up rounding
+    //3. 'round' - rounding to nearest integer.
+
+  var A = this;
+  //Code from here: https://github.com/peterolson/BigInteger.js/issues/146
+  //I already have integer logarithm function here
+
+  // https://stackoverflow.com/questions/15978781/how-to-find-integer-nth-roots
+  var nthRoot = function (A, n, e) {
+    if (e.compareTo(n) < 0) {
+      return bigInt(1);
+    }
+    var q = e.divide(n).divide(bigInt(2));
+    var t = bigInt(2).pow(q);
+    var x0 = q.compareTo(bigInt(0)) === 0 ? bigInt(4) : t.add(bigInt(1)).multiply(nthRoot(A.divide(t.pow(n)), n, e.subtract(q.multiply(n))));
+    var x = x0;
+    var xp = x.add(bigInt(1));
+    while (x.compareTo(xp) < 0) {
+      xp = x;
+      var t = A.divide(x.pow(n.subtract(bigInt(1))));
+      x = x.multiply(n.subtract(bigInt(1))).add(t).divide(n);
+    }
+    return xp;
+  };
+  A = bigInt(A);
+  n = bigInt(n);
+  if (A.compareTo(bigInt(0)) < 0 || n.compareTo(bigInt(0)) <= 0) {
+    throw new RangeError();
+  }
+  if (A.compareTo(bigInt(0)) === 0) {
+    return bigInt(0);
+  }
+  var e = bigInt(A.integerLogarithm(bigInt(2)).e);
+  var x = nthRoot(A, n, e);
+  
+  if(typeof rounding !== 'undefined'){
+    if(rounding === 'ceil'){
+        return x.next();
+    }
+    else if(rounding === 'round'){
+        //10 n√x = n√(10^n)x;
+        //(n√(10^n)x % 10 >= 5) ? n_root++ : n_root;
+        var n10 = bigInt('10').pow(n);
+        var An10 = A.multiply(n10);
+        var n_root_An10 = An10.nthRoot(n);
+        var last_digit = n_root_An10.mod(bigInt('10'));
+        if(last_digit.geq(bigInt('5'))){return x.next()}
+        //else return default floor.
+    }
+    //else return default floor
+  }//else return default floor
+  
+  return x;
+  //if x not a whole root, and A not a x.pow(m), you can calculate difference yourself.
+}    
+    SmallInteger.prototype.nthRoot = BigInteger.prototype.nthRoot; //add this to make function callable.
+
     function bitwise(x, y, fn) {
         y = parseValue(y);
         var xSign = x.isNegative(), ySign = y.isNegative();
