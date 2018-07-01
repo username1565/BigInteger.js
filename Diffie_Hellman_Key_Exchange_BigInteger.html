@@ -1,0 +1,365 @@
+<script language="JavaScript" type="text/javascript" src="BigInteger.js"></script>
+
+<script>
+//set parameters
+var bits = 128;
+var radix = 10; //change to 16 if you want to see hex.
+
+/*
+	//To using Diffie-Hellman, need to generate opened parameters (p, and g),
+	//where g is primitive root of p.
+	
+	//About primitive roots...
+	
+	//g is primitive root by module of p.
+	//This is a number co-prime with p.
+	//If p is a prime number, all numbers in range (1, φ(p)) are co-prime with p. φ(p) = (p-1)
+	//g is a generator. 
+	//That means g^d mod p give a different values for any different d
+	//without any periodic repeats in range (1 - φ(p));
+
+	For example, see this table:
+g^d mod p; p = 29 (prime number)
+g\d 1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	21	22	23	24	25	26	27	28	
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1
+2	2	4	8	16	3	6	12	24	19	9	18	7	14	28	27	25	21	13	26	23	17	5	10	20	11	22	15	1	1-st primitive root.
+3	3	9	27	23	11	4	12	7	21	5	15	16	19	28	26	20	2	6	18	25	17	22	8	24	14	13	10	1	2-nd primitive root.
+4	4	16	6	24	9	7	28	25	13	23	5	20	22	1	4	16	6	24	9	7	28	25	13	23	5	20	22	1
+5	5	25	9	16	22	23	28	24	4	20	13	7	6	1	5	25	9	16	22	23	28	24	4	20	13	7	6	1
+6	6	7	13	20	4	24	28	23	22	16	9	25	5	1	6	7	13	20	4	24	28	23	22	16	9	25	5	1
+7	7	20	24	23	16	25	1	7	20	24	23	16	25	1	7	20	24	23	16	25	1	7	20	24	23	16	25	1
+8	8	6	19	7	27	13	17	20	15	4	3	24	18	28	21	23	10	22	2	16	12	9	14	25	26	5	11	1	3-rd primitive root.
+9	9	23	4	7	5	16	28	20	6	25	22	24	13	1	9	23	4	7	5	16	28	20	6	25	22	24	13	1
+10	10	13	14	24	8	22	17	25	18	6	2	20	26	28	19	16	15	5	21	7	12	4	11	23	27	9	3	1	4-th primitive root.
+11	11	5	26	25	14	9	12	16	2	22	10	23	21	28	18	24	3	4	15	20	17	13	27	7	19	6	8	1	5-th primitive root.
+12	12	28	17	1	12	28	17	1	12	28	17	1	12	28	17	1	12	28	17	1	12	28	17	1	12	28	17	1
+13	13	24	22	25	6	20	28	16	5	7	4	23	9	1	13	24	22	25	6	20	28	16	5	7	4	23	9	1
+14	14	22	18	20	19	5	12	23	3	13	8	25	2	28	15	7	11	9	10	24	17	6	26	16	21	4	27	1	6-th primitive root.
+15	15	22	11	20	10	5	17	23	26	13	21	25	27	28	14	7	18	9	19	24	12	6	3	16	8	4	2	1	7-th primitive root.
+16	16	24	7	25	23	20	1	16	24	7	25	23	20	1	16	24	7	25	23	20	1	16	24	7	25	23	20	1
+17	17	28	12	1	17	28	12	1	17	28	12	1	17	28	12	1	17	28	12	1	17	28	12	1	17	28	12	1
+18	18	5	3	25	15	9	17	16	27	22	19	23	8	28	11	24	26	4	14	20	12	13	2	7	10	6	21	1	8-th primitive root.
+19	19	13	15	24	21	22	12	25	11	6	27	20	3	28	10	16	14	5	8	7	17	4	18	23	2	9	26	1	9-th primitive root.
+20	20	23	25	7	24	16	1	20	23	25	7	24	16	1	20	23	25	7	24	16	1	20	23	25	7	24	16	1
+21	21	6	10	7	2	13	12	20	14	4	26	24	11	28	8	23	19	22	27	16	17	9	15	25	3	5	18	1	10-th primitive root.
+22	22	20	5	23	13	25	28	7	9	24	6	16	4	1	22	20	5	23	13	25	28	7	9	24	6	16	4	1
+23	23	7	16	20	25	24	1	23	7	16	20	25	24	1	23	7	16	20	25	24	1	23	7	16	20	25	24	1
+24	24	25	20	16	7	23	1	24	25	20	16	7	23	1	24	25	20	16	7	23	1	24	25	20	16	7	23	1
+25	25	16	23	24	20	7	1	25	16	23	24	20	7	1	25	16	23	24	20	7	1	25	16	23	24	20	7	1
+26	26	9	2	23	18	4	17	7	8	5	14	16	10	28	3	20	27	6	11	25	12	22	21	24	15	13	19	1	11-th primitive root.
+27	27	4	21	16	26	6	17	24	10	9	11	7	15	28	2	25	8	13	3	23	12	5	19	20	18	22	14	1	12-th primitive root.
+28	28	1	28	1	28	1	28	1	28	1	28	1	28	1	28	1	28	1	28	1	28	1	28	1	28	1	28	1
+
+As you can see:
+-	p = 29 (prime number);	
+- 	φ(p) = (p-1) for prime number; φ(p) = 28; And all numbers before this are co-prime.
+-	For each prime number any g^φ(p) mod p = g^28 mod 29 = 1. All ones, in rigth column. This is Fermat's little theorem.
+-	φ(p) is even number. This have devisor 2. φ(p)/2 = 14.
+-	g^φ(p)/2 mod p = g^14 mod p. Sometimes 28, sometimes 1.
+-	g = 2, have no any repeats of 1 in all string. This is primitive root.
+-	Look at g = 12. g^φ(p)/2 mod p = 12^14 mod 29 = 28 !== 1 == φ(p).
+	Seems like primitive root, but 7 ones in the string. Why 7? Because 7 is devisor of φ(p).
+	φ(p) = 28 = 2*2*7;
+-	g = 16 have 4 repeats of 1 in the string, because 2*2 = 4, and 28/4 = 7 and 4 | 28 (this means 28 % 4 == 0)
+	But 16^(φ(p)/2) mod p = 16^14 mod 29 = 1. Primitive root not have 1 there.
+-	φ(29) = 28. φ(28) = 12. φ(φ(29)) = 12. https://www.wolframalpha.com/input/?i=%CF%86(28)
+	So total 12 primitive roots, here.
+
+	Another example.
+g^d mod p; p = 9. Not a prime number.
+g\d 1	2	3	4	5	6	7	8	
+1	1	1	1	1	1	1	1	1
+2	2	4	8	7	5	1	2	4	primitive root!
+3	3	0	0	0	0	0	0	0	not co-prime with 9
+4	4	7	1	4	7	1	4	7	not a primitive root. Cyclic repeats.
+5	5	7	8	4	2	1	5	7	primitive root.
+6	6	0	0	0	0	0	0	0	not co-prime with 9
+7	7	4	1	7	4	1	7	4	cyclic repeats...
+8	8	1	8	1	8	1	8	1
+
+-	p = 9, not a prime. 9 = 3*3 prime factorization.
+-	But 9 have a primitive roots. This is g = 2 and g = 5;
+-	No ones in right column. Because 9 not a prims. φ(p) !== 8, (p-1)
+-	φ(p) = 6: Check here: 	https://www.wolframalpha.com/input/?i=%CF%86(9)
+-	any g^φ(p) mod p = g^6 mod 9 = 1 or 0.
+-	Where g^φ(p) mod p = 0, number is not co-prime.
+-	φ(9) = 6. 	https://www.wolframalpha.com/input/?i=%CF%86(9)
+	φ(6) = 2. 	https://www.wolframalpha.com/input/?i=%CF%86(6)
+	So total 2 primitive roots here.
+
+	Third example. 
+g^d mod p; p = 8. Not a prime number.
+g\d 1	2	3	4	5	6	7	
+1	1	1	1	1	1	1	1	cyclic period
+2	2	4	0	0	0	0	0	not co-prime with 8
+3	3	1	3	1	3	1	3	cyclic repeats
+4	4	0	0	0	0	0	0	not co-prime with 8
+5	5	1	5	1	5	1	5	repeats
+6	6	4	0	0	0	0	0	not co-prime with 8
+7	7	1	7	1	7	1	7	not primitive root, repeats.
+
+- 	φ(8) = 4. and no one g^4 mod 8 !== φ(8). Only 1 and 0 in 4-th column.
+- 	No primitive roots here!
+-	φ(8) = 4.	https://www.wolframalpha.com/input/?i=%CF%86(8)
+	φ(4) = 2
+	But 0 primitive roots here. Because first primitive root cann't be founded.
+
+Question: 	How many primitive roots have the number n?
+Answer: 	If this number have only one primitive root, total primitive roots number is φ(φ(n))!
+
+Question: 	How to calculate φ(n)?
+Answer:		If n is a prime φ(n) = (n-1), if n is composite need to factorize n.
+			if n not a prime the
+			Simple function to calculate φ(n) + factorization algorithm - already exists here.
+			Just test this. If n have so long prime factors this can working slow. Try to using another algorithms.
+			If, prime factors:
+				 - Less than 2^16 or so: Lookup table.
+				 - Less than 2^70 or so: Richard Brent's modification of Pollard's rho algorithm.
+				 - Less than 10^50: Lenstra elliptic curve factorization
+				 - Less than 10^100: Quadratic Sieve
+				 - More than 10^100: General Number Field Sieve
+
+Question:	How to find random primitive root faster?
+Answer:		if p is prime φ(p) = (p-1), without factorization p.
+			and if φ(p)/2 = (p-2)/2 is a prime too, φ(p) have only 2 prime factors (2, prime_number).
+			Then, φ(φ(p)) = φ(p)/2 - 1 without factorization φ(p).
+			In this case, g is primitive root if g^φ(p)/2 === φ(p) !== 1;
+			and if g%φ(p) !== (1 or 0); (first and last g on previous tables.)
+			
+			
+Question:	How to find primitive root from random integer?
+Answer:		g is primitive root by p, if:
+			g^d mod p not have periodic repeats for all d in range (1 - φ(p));
+			if φ(p) can be facrorized, then repeats can be for d | φ(p)/p_j,
+			where p_j - is one of prime factor, from many factors on which φ(p) is factorized.
+			
+			If p is prime, then φ(p) = (p-1),
+			and if (p-1)/2 is a prime, then φ(p)/2 is prime;
+			
+			In this case even φ(p) have only two factors [2, φ(p)/2 (prime number)];
+			In and g is primitive root if d | φ(p)/p_j, where p_j - prime factors.
+			
+			So φ(p)/p_j can be φ(p)/2; or φ(p)/(φ(p)/2)
+			φ(p)/2 is prime number. d | φ(p)/2 cann't be found in this case.
+			But φ(p)/(φ(p)/2) = 2; and d | 2 can be found if d = 2;
+			
+			Primitive root there is if:
+			(g^((p-1)/2) mod p !== 1) && (g^half_φ mod p === φ(p))
+			and (g^2 mod p !== 1)
+			When g^2 mod p === 1 this number is not primitive root.
+			For example, this is first and last strings in the tables.
+
+			Generally need to check φ(p)/p_j, where p_j is prime factors for φ(p), so need to factorize φ(p).
+			If this value is large bigInteger, this can working slow and take long time.
+*/
+
+
+// 	A simple method to evaluate Euler Totient Function, using BigInteger.
+//	Warning, n can be not a prime here.
+function EulerPhi(n) {
+	if(n.MillerRabin(20)){return n.subtract(bigInt('1'));} //φ(n) = (n-1), if n is prime. All numbers before n is co-prime with n.
+	
+	var result = n;
+	//if n is not prime, need to factorize n.
+	//there is simple factirization methog by trying to divide n for each prime number, before √n
+	for(i=bigInt('2'); i.multiply(i).leq(n); i = i.nextprime()){//from 2 to (√n) i^2 = n.
+		if (n.mod(i).eq(bigInt('0'))){	//if i is not a devisor n
+			while (n.mod(i).eq(bigInt('0'))){ //while this is devisor
+				n = n.divide(i);				//divide this by i
+			}
+			result = result.subtract(result.divide(i)); //update result
+		}
+	}
+	if (n.greater(bigInt(1))){
+		result = result.subtract(result.divide(n));
+	}
+	return result;
+}
+//test this
+var n = bigInt.randBetween('1', '1e8'); //not always prime
+var φ_n = EulerPhi(n);
+document.write(
+	'Test Euler totient function (for random n):'
+	,'<br>n = ', n.toString()
+	,'. n is prime? <a href="https://www.wolframalpha.com/input/?i=isprime('+n.toString()+')">', n.MillerRabin(20) , '</a>'
+	,'<br>φ(n) = EulerPhi('+n.toString()+') = ', φ_n
+	,' <a href="https://www.wolframalpha.com/input/?i=%CF%86('+n.toString()+')" target="_blank">'
+	,'Check it, here</a>'
+);
+
+//Diffie-Hellman key exchange implementation, using BigInteger.
+
+//Generate p, where (p-1)/2 is a prime.
+function generate_p(bitlength){
+	//pp = (p-1)/2 - must be a prime. 			| * 2
+	//2*pp = p-1								| + 1
+	//2*pp + 1 = p								|revert this
+	//p = 2pp + 1; 								|return p, if prime.
+	var randprime = bigInt.randbits(bitlength); 				//just got rand bits, not already prime.
+	do{
+		var randprime = randprime.nextprime();					//find next prime p, by rolling, using MillerRabin() primality check
+		p = randprime.multiply(bigInt('2')).add(bigInt('1'));	//make p
+	}while(!p.MillerRabin(20))									//check p*2+1 primality of
+	
+	return p;
+}
+
+
+//get first or random primitive root, by module of prime p.
+function get_g(p, mode_for_get_random_g){
+	//This function fast founding g by module of prime p, if (p-1)/2 is a prime too.
+	if(!p.MillerRabin(20)){console.log('p not a prime.'); return false;} //check p primality.
+	var φ_p = EulerPhi(p); 		//if p is prime, φ(p) = p-1, without factorization φ(p).
+	var half_φ = φ_p.divide(bigInt('2'));	//φ(p)/2 = (p-1)/2
+	if(!half_φ.MillerRabin(20)){console.log('φ(p)/2 not a prime.'); return false;} //check primality for (p-1)/2.
+	//And if this is a prime... Continue...
+	
+	if(typeof mode_for_get_random_g ==='undefined'){//by default will be returned first founded g, if second parameter if undefined.
+	
+	//return first founded primitive root
+		for(g=bigInt('1'); g.lesserOrEquals(φ_p); g = g.next()){										//rolling g from beginning
+			if(
+				//!(bigInt.gcd(g, p)).eq(bigInt('1'))		//if p not e prime, exclude g's which are not co-prime with p
+				
+				//But when p is prime, all numbers before p in range [1, φ(p)) is co-prime
+				//p is prime so this is commented.
+				//No need to run gcd-function for each rolling bigInt.
+				
+				g.mod(φ_p).eq(bigInt('1'))					//exclude g % φ(p) === 1 (first string in the tables).
+				|| g.mod(φ_p).isZero()						//and g % φ(p) == 0. (last string in the tables).
+			){continue;}
+			
+			//if (p-1)/2 is a prime and if p = prime
+			//then g is primitive root,
+			//when:
+			//(g^(φ(p)/2) mod p !== 1) && (g^(φ(p)/2) mod p === φ(p))
+			//without numbers, excluded higher.
+			if(
+				g.modPow(half_φ, p).neq(bigInt('1'))
+			&&  g.modPow(half_φ, p).eq(φ_p)
+			){ 				//return first founded - primitive root
+				return g;									//if JSnumber -> to bigInt it
+			}
+			if(g.geq(φ_p)){break;}							//limiting iterations
+		}
+	}
+	else{//if something set by second parameter in this function...
+
+		//return random founded primitive root.
+		
+		//For small numbers you can find your random primitive root here:
+		//http://www.bluetulip.org/2014/programs/primitive.html
+
+		var g = bigInt.randBetween(bigInt('0'), p).mod(φ_p);		//generate random g
+		for(;;){
+			g = g.add(bigInt('1')).mod(φ_p); //change g
+
+			if(
+				//!(bigInt.gcd(g, p)).eq(bigInt('1'))				//if not g and p not co-prime
+				//No need to check gcd for each g, if p is prime. All in range [1, φ(p)) is co-prime.
+				
+				g.mod(φ_p).eq(bigInt('1'))							//Just exclude g % φ(p) === 1 (first string in the tables).
+				|| g.mod(φ_p).isZero()								//and g % φ(p) == 0. (last string in the tables).
+			){continue;}
+		
+			
+			//check g:
+			if(
+				!(g.modPow(half_φ, p)).eq(bigInt('1'))				//g^(φ(p)/2) mod p !== 1
+				&&	(g.modPow(half_φ, p)).eq(φ_p)					//but === φ(p)
+			){
+				//then return primitive root
+				return g;																		//as bigInt
+			}
+		}
+	}
+}
+
+function generate_priv(p){
+	var bitlength = p.bitLength();
+	return rand_priv = bigInt.randbits(bigInt.randBetween('1', bitlength.subtract(bigInt(1))));
+}
+
+function generate_pub(priv, g, p){
+	var pub = g.modPow(priv, p);
+	return pub;
+}
+
+
+//Run DH
+//parameters "bits" (bitlength for p), and "radix" (to display integers) was been defined in the top of script.
+
+var p = generate_p(bits);	//generate p by bitlength
+//first primitive root (number is smaller) by default...
+var g = get_g(p);											//first g (primitive root by module prime p (p-1)/2 is prime also);
+//random primitive root (number will be larger)
+var random_g = get_g(p, 'something_as_second_parameter'); 	//random g (primitive root by module prime p (p-1)/2 is prime also);
+
+document.write(
+	"<h1>BigInteger DH. Diffie-Hellman key exchange (using random bigInteger numbers)."
+	,"<input title='To generate other numbers - just reload this page.' type='button' value='Reload this Page' onClick='window.location.reload()'>"
+	,"</h1><pre>1. Alice or Bob generate open parameters (p, g)."
+	,"<br>	Generate random p by bitlength ("+bits+" bits), for which (p-1)/2 is prime too. <b><big>p = ", p.toString(radix)," ("+p.bitLength().toString()+" bits)", '</big></b>;'
+	,"<br>	Generate g (primitive root by module prime p)."
+	,"<br><b><big>		first g = ", g.toString(radix)," ("+g.bitLength().toString()+" bits)",';'
+	,'<br>		random g = ', random_g.toString(radix)," ("+random_g.bitLength().toString()+" bits)",'</big></b>;'
+	,"<br>2. Transfer open parameters (p, g) to another correspondent."
+);
+
+//Alice
+var a = generate_priv(p);
+var A = generate_pub(a, g, p);
+var A_from_random_g = generate_pub(a, random_g, p);
+document.write(
+	"<br>3. Alice: "
+	,"<br>	Generate secret Alice private key (rand nubmer with biglength lesser or equals p ("+p.bitLength().toString()+" bits))."
+	,"<b><big> a = ", a.toString(radix)," ("+a.bitLength().toString()+" bits)", '</big></b>;'
+	,"<br>	Calculating Alice pub (A = g^a mod p)."
+	,"<br>		Alice pub from first g: <b><big>A = ", A.toString(radix)," ("+A.bitLength().toString()+" bits)",'</big></b>;'
+	,"<br>		Alice pub from random g: <b><big>A_from_random_g = ", A_from_random_g.toString(radix)," ("+A_from_random_g.bitLength().toString()+" bits)",'</big></b>;'
+	,"<br>4. Alice transfer A or A_from_random_g to Bob as Alice public key..."
+);
+
+//Bob
+var b = generate_priv(p);
+var B = generate_pub(b, g, p);
+var B_from_random_g = generate_pub(b, random_g, p);
+var K_Bob = generate_pub(b, A, p);
+var K_Bob_from_A_random_g = generate_pub(b, A_from_random_g, p);
+
+document.write(
+	"<br>5. Bob: "
+	,"<br>	Secret Bob priv (rand priv with biglength lesser or equals p ("+p.bitLength().toString()+" bits))."
+	,"<b><big> b = ", b.toString(radix),"("+b.bitLength().toString()+" bits)",'</big></b>;'
+	,"<br>	Calculating Bob pub (B = g^b mod p)."
+	,"<br>		Bob pub by first g: <b><big>B = ", B.toString(radix)," ("+B.bitLength().toString()+" bits)",'</big></b>;'
+	,"<br>		Bob pub from random g: <b><big>B_from_random_g = ", B_from_random_g.toString(radix)," ("+B_from_random_g.bitLength().toString()+" bits)",'</big></b>;'
+	,"<br>6. Bob transfer B or B_from_random_g to Alice as Bob public key..."
+	,"<br>7. And Bob calculate <b><big>K from Alice pub: ", K_Bob.toString(radix)," ("+K_Bob.bitLength().toString()+" bits)", '</big></b>;'
+	,"<br>	Bob's K from <b><big>A_from_random_g: ", K_Bob_from_A_random_g.toString(radix)," ("+K_Bob_from_A_random_g.bitLength().toString()+" bits)", '</big></b>;'
+);
+
+//Alice calculate K
+var K_Alice = generate_pub(a, B, p);
+var K_Alice_from_B_from_random_g = generate_pub(a, B_from_random_g, p);
+document.write(
+	"<br>8. Alice calculate <b><big>K from Bob pub: ", K_Alice.toString(radix)," ("+K_Alice.bitLength().toString()+" bits)", '</big></b>;'
+	,"<br>	Or Alice calculate <b><big>K from B_from_random_g pub: ", K_Alice_from_B_from_random_g.toString(radix)," ("+K_Alice_from_B_from_random_g.bitLength().toString()+" bits)", '</big></b>;'
+);
+
+//compare K from Bob and Alice
+if((K_Bob.toString()===K_Alice.toString()) && (K_Alice_from_B_from_random_g.toString()===K_Bob_from_A_random_g.toString())){
+	document.write(
+		"<br>9. Compare: <b><big>K_Bob</big></b> = <b><big>K_Alice</big></b> (depending from selected g):"
+		,"<br>	<b><big>", (K_Bob.toString()===K_Alice.toString()), "</big></b> (K_Bob.toString()===K_Alice.toString())"
+		,"<br>	<b><big>", (K_Alice_from_B_from_random_g.toString()===K_Bob_from_A_random_g.toString()), "</big></b> (K_Alice_from_B_from_random_g.toString()===K_Bob_from_A_random_g.toString())"
+		,"<br>10. Then they both can do:"
+		,"<br>	- a symmetric encryption traffic by <b><big>K_Alice</big></b> (Alice encrypting) or <b><big>K_Bob</big></b> (Bob Encrypting),"
+		,"<br>	- transfer this in by unsecure channel to another correspondent."
+		,"<br>	- Bob doing decryption by <b><big>K_Bob</big></b> (Bob decrypting) or <b><big>K_Alice</big></b> (Alice decrypting)"
+		,"<br>	(without K transferring in opened channel)</pre>"
+	);
+}
+//The End :)
+
+</script>
