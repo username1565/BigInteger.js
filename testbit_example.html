@@ -1,0 +1,36 @@
+<script language="JavaScript" type="text/javascript" src="BigInteger.js"></script>
+<script>
+
+function bit_test(value, bit)
+{
+        //check value and bit
+	if(!bigInt.isInstance(value)){throw new Error("Function bit_test: value not a bigInteger");}
+	if(typeof bit==='undefined'){var bit = 1;}
+	if(!Number.isInteger(bit) && bigInt.isInstance(bit)){bit = bit.toJSNumber();}
+	else if(!Number.isInteger(bit) && !bigInt.isInstance(bit)){throw new Error("Function bit_test: bit not a nubmer");}	
+	
+	return ((value.shiftRight(bit-1).value[0] || value.shiftRight(bit-1).value) & 1) //=== 1; //uncomment this if you need true or false
+}
+
+//test
+var test = bigInt.randBetween('1', '1e256'); //rand int
+var bit_number = bigInt.randBetween(bigInt('1'), test.bitLength()); //rand bit
+
+var test_bin = test.toString(2); //binary string
+//show this bit
+var bits_before_bit = test_bin.substring(0, test_bin.length-bit_number.toJSNumber());
+var bit_in_string = test_bin.substring(test_bin.length-bit_number.toJSNumber(), test_bin.length-bit_number.toJSNumber()+1);
+var bits_after_bit = test_bin.substring(test_bin.length-bit_number.toJSNumber()+1, test_bin.length);
+//new string with big bit
+var test_bin = bits_before_bit+'<big><b>'+bit_in_string+'</b></big>'+bits_after_bit;
+var bit_test = bit_test(test, bit_number);
+
+document.write(
+	'<br><br>'
+	,'Generated test number: ', test.toString() //number
+	,'<br>test -> to bin: ', test_bin, ' (',test.bitLength().toString(), 'bits)' //bin string with bitlength
+	,'<br>'+bit_number.toString()+'-th bit value: ', bit_test//n-th bit
+	,'<br>(bit_test === parseInt(bit_in_string)): ', (bit_test === parseInt(bit_in_string))
+);
+
+</script>
