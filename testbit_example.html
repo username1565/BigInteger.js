@@ -13,7 +13,7 @@ function bit_test(value, bit)
 }
 
 //test
-var test = bigInt.randBetween('1', '1e256'); //rand int
+var test = bigInt.randBetween('1', '1e128'); //rand int
 var bit_number = bigInt.randBetween(bigInt('1'), test.bitLength()); //rand bit
 
 var test_bin = test.toString(2); //binary string
@@ -30,7 +30,41 @@ document.write(
 	,'Generated test number: ', test.toString() //number
 	,'<br>test -> to bin: ', test_bin, ' (',test.bitLength().toString(), 'bits)' //bin string with bitlength
 	,'<br>'+bit_number.toString()+'-th bit value: ', bit_test//n-th bit
-	,'<br>(bit_test === parseInt(bit_in_string)): ', (bit_test === parseInt(bit_in_string))
+	,'<br>(bit_test === parseInt(bit_in_string)): <b><big>', (bit_test === parseInt(bit_in_string)),'</big></b>'
 );
+
+
+bigInt.prototype.testBit = function (index) {
+	if(!bigInt.isInstance(this)){throw new Error("Function test: this not a bigInteger");}
+	if(typeof index==='undefined'){var index = 1;}
+	if(!Number.isInteger(index) && bigInt.isInstance(index)){index = index.toJSNumber();}
+	else if(!Number.isInteger(index) && !bigInt.isInstance(index)){throw new Error("Function bit_test: index not a nubmer");}
+
+	return ((this.shiftRight(index).value[0] || this.shiftRight(index).value) & 1) === 1; //uncomment this if you need true or false
+};
+
+function verify(number) {
+	var result = "";
+	var index = number.bitLength();
+	while(index--)
+		result += number.testBit(index) ? "1" : "0"; 
+	var control = number.toString(2);
+	document.write(
+		"<br><br><br>number: ", number.toString()
+		,"<br>control: ", control
+		,"<br>result:  ", result
+		,"<br><b><big>*** ", control == result ? "PASS" : "FAIL", " ***</big></b>"
+	);
+}
+
+document.write("<br><hr>Another test");
+/*
+	Small integer passes
+*/
+verify(bigInt("1234567"));
+/*
+	True big integer passes
+*/
+verify(bigInt("123456789012345678901234567890123456789012345678901234567890"));
 
 </script>
