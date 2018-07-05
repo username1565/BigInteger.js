@@ -54,6 +54,8 @@ function verify(number) {
 		,"<br>control: ", control
 		,"<br>result:  ", result
 		,"<br><b><big>*** ", control == result ? "PASS" : "FAIL", " ***</big></b>"
+		,"<br><b><big>(", number.bitLength()," bits)</big></b>"
+		
 	);
 }
 
@@ -61,10 +63,10 @@ document.write("<br><hr>Another test");
 /*
 	Small integer passes
 */
-verify(bigInt("1234567"));
+verify(bigInt.randBetween("1", "1e15"));
 /*
 	True big integer passes
 */
-verify(bigInt("123456789012345678901234567890123456789012345678901234567890"));
+verify(bigInt.randBetween("1", "1e70"));
 
 </script>
