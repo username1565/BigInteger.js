@@ -13,7 +13,7 @@ function bit_test(value, bit)
 }
 
 //test
-var test = bigInt.randBetween('1', '1e128'); //rand int
+var test = bigInt.randBetween('1', '1e32'); //rand int
 var bit_number = bigInt.randBetween(bigInt('1'), test.bitLength()); //rand bit
 
 var test_bin = test.toString(2); //binary string
@@ -22,7 +22,7 @@ var bits_before_bit = test_bin.substring(0, test_bin.length-bit_number.toJSNumbe
 var bit_in_string = test_bin.substring(test_bin.length-bit_number.toJSNumber(), test_bin.length-bit_number.toJSNumber()+1);
 var bits_after_bit = test_bin.substring(test_bin.length-bit_number.toJSNumber()+1, test_bin.length);
 //new string with big bit
-var test_bin = bits_before_bit+'<big><b>'+bit_in_string+'</b></big>'+bits_after_bit;
+var test_bin = bits_before_bit+'<h2><b>'+bit_in_string+'</b></h2>'+bits_after_bit;
 var bit_test = bit_test(test, bit_number);
 
 document.write(
