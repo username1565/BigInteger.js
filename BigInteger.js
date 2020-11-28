@@ -793,8 +793,8 @@ var bigInt = BigInteger = (function (undefined) {
     };
     SmallInteger.prototype.isDivisibleBy = BigInteger.prototype.isDivisibleBy;
 
-    function isBasicPrime(v) {
-        var n = v.abs();
+    var isBasicPrime = function(v) { //v is optional bigint, when "this" is not bigint.
+        var n = (bigInt(v || this)).abs();
         if (n.eq(0) || n.eq(1)){return false;}
         if (n.eq(2) || n.eq(3) || n.eq(5)){return true;}
         if (n.isEven() || n.isDivisibleBy(3) || n.isDivisibleBy(5)){return false;}
@@ -803,111 +803,13 @@ var bigInt = BigInteger = (function (undefined) {
 		// we don't know if it's prime: let the other functions figure it out
 		// and return 'undefined'
     }
+	Integer.isBasicPrime = SmallInteger.prototype.isBasicPrime = BigInteger.prototype.isBasicPrime = Number.prototype.isBasicPrime = isBasicPrime;
 	//	Usage:
-	//	console.log(BigInteger.isBasicPrime(new bigInt('47'))); //Usage
+	//	console.log(BigInteger.isBasicPrime(new bigInt('47')));		// as BigInteger-function, with bigInt
+	//	console.log(BigInteger.isBasicPrime(47));					// as BigInteger-function, with number
+	//	console.log((new bigInt(47)).isBasicPrime());				// as function for BigInteger or SmallInteger
+	//	console.log((47).isBasicPrime());							// as function for Number
 
-    BigInteger.prototype.isPrime = function () {
-        var isPrime = isBasicPrime(this);
-        if (isPrime !== undefined) return isPrime;
-        var n = this.abs(),
-            nPrev = n.prev();
-        var a = [2, 3, 5, 7, 11, 13, 17, 19],
-            b = nPrev,
-            d, t, i, x;
-        while (b.isEven()) b = b.divide(2);
-        for (i = 0; i < a.length; i++) {
-            x = bigInt(a[i]).modPow(b, n);
-            if (x.eq(Integer[1]) || x.eq(nPrev)) continue;
-            for (t = true, d = b; t && d.lesser(nPrev); d = d.multiply(2)) {
-                x = x.square().mod(n);
-                if (x.eq(nPrev)) t = false;
-            }
-            if (t) return false;
-        }
-        return true;
-    };
-    SmallInteger.prototype.isPrime = BigInteger.prototype.isPrime;
-	//	console.log(new BigInteger('47').isPrime()); //Usage
-
-    BigInteger.prototype.isProbablePrime = function (iterations, rng) {
-        var isPrime = isBasicPrime(this);
-        if (isPrime !== undefined) return isPrime;
-        var n = this.abs();
-        var t = iterations === undefined ? 5 : iterations;
-        // use the Fermat primality test
-        for (var i = 0; i < t; i++) {
-            var a = bigInt.randBetween(2, n.minus(2), rng);
-            if (!a.modPow(n.prev(), n).isUnit()) return false; // definitely composite
-        }
-        return true; // large chance of being prime
-    };
-    SmallInteger.prototype.isProbablePrime = BigInteger.prototype.isProbablePrime;
-	//	console.log(new BigInteger('47').isPrime()); //Usage
-
-    //Miller-Rabin algorithm implementation for check primality for number
-    function Miller_Rabin_prime_check(a, s, d, n){
-        var x = a.modPow(d, n);
-        //x = pow(a, d, n);
-        if(x.eq(1)){return true;}
-		var nprev = n.prev();
-        for(var step=1;step<=(s-1);step++){
-            if(x.eq(nprev)){return true;}
-            x = x.modPow(Integer[2], n);
-        }
-        return (x.eq(nprev));
-    }
-
-	var roundsMR = undefined;	//rounds of MillerRabin - global value
-	
-	var getSetMRrounds = function(setMRrounds){
-		var defMRrounds = (setMRrounds || 20);	//set default - setMRrounds rounds or 20, if undefined.
-		return (
-					( (typeof roundsMR === 'undefined') || (typeof setMRrounds !== 'undefined') )
-						? ( roundsMR = defMRrounds, defMRrounds )		    //set defMRrounds rounds globally, and return 20 for k.
-						: roundsMR
-				)
-		;
-	}
-	//Usage:
-	//	BigInteger.getSetMRrounds()		//get current number of rounds or set default, if undefined, and return it.
-	//	BigInteger.getSetMRrounds(10)	//set specified number of rounds, save it globally, and return it.
-
-    BigInteger.prototype.MillerRabin = function (
-		k	//rounds of MillerRabin
-	,	rng //seeded rng
-	)
-	{
-        var isPrime = isBasicPrime(this);
-        if (isPrime !== undefined) return isPrime;
-
-        // use the Miller-Rabin primality test
-        var a, s, d;
-        var n = this.abs();
-        var k =	k || getSetMRrounds();			//use k rounds or global value, or set it in k and globally, if undefined.
-        if(n.eq(2)){
-            return true;
-        }
-        if(n!==false & n.eq(1)){
-            return false;
-        }
-        s = 0;
-        d = n.prev();
-
-        while(d.mod(2).eq(0)){
-            d = d.divmod(2)['quotient'];
-            s++;
-        }
-
-        for(var round=0; round<k; round++){
-            a = bigInt.randBetween(2, n.prev(), rng);
-            if(!Miller_Rabin_prime_check(a, s, d, n)){return false;}
-        }
-        return true;
-    };
-    SmallInteger.prototype.MillerRabin = BigInteger.prototype.MillerRabin;
-	//	console.log(new BigInteger('47').MillerRabin()); //Usage
-
-	//PeterOlson's Miller-Rabin
     function millerRabinTest(n, a) {
         var nPrev = n.prev(),
             b = nPrev,
@@ -927,12 +829,14 @@ var bigInt = BigInteger = (function (undefined) {
         }
         return true;
     }
+
 	//MillerRabin full primality check, for logN steps.
     // Set "strict" to true to force GRH-supported lower bound of 2*log(N)^2
-    BigInteger.prototype.isPrimeMR = function (strict) {
-        var isPrime = isBasicPrime(this);
+    var isPrime = function (strict, n) { //n is optional bigint or number, when "this" is not bigint.
+		n = bigInt(n || this);
+        var isPrime = isBasicPrime(n);
         if (isPrime !== undefined) return isPrime;
-        var n = this.abs();
+        var n = n.abs();
         var bits = n.bitLength();
         if (bits <= 64)
             return millerRabinTest(n, [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]);
@@ -943,22 +847,50 @@ var bigInt = BigInteger = (function (undefined) {
         }
         return millerRabinTest(n, a);
     };
-    SmallInteger.prototype.isPrimeMR = BigInteger.prototype.isPrimeMR;
-	//	console.log(new BigInteger('47').isPrime()); //Usage
+    Integer.isPrime = SmallInteger.prototype.isPrime = BigInteger.prototype.isPrime = Number.prototype.isPrime = isPrime;
+	//	Usage:
+	//	console.log(BigInteger.isPrime(false, '47'));	// as BigInteger-function with string-number
+	//	console.log((bigInt(47)).isPrime(true));		// for bigInt, with strict only
+	//	console.log(new BigInteger('47').isPrime());	// for new BigInteger
+	//	console.log((47).isPrime(true));				// as Number-function
 	
-	//MillrRabin probablistic primality check: errors = 1/(N^k), where N - is number value, k - number of iterations.
-    BigInteger.prototype.isProbablePrimeMR = function (iterations, rng) {
-        var isPrime = isBasicPrime(this);
+	var roundsMR = undefined;	//rounds of MillerRabin - global value
+	
+	var getSetMRrounds = function(setMRrounds){
+		var defMRrounds = (setMRrounds || 20);	//set default - setMRrounds rounds or 20, if undefined.
+		return (
+					( (typeof roundsMR === 'undefined') || (typeof setMRrounds !== 'undefined') )
+						? ( roundsMR = defMRrounds, defMRrounds )		    //set defMRrounds rounds globally, and return 20 for k.
+						: roundsMR
+				)
+		;
+	}
+	//Usage:
+	//	BigInteger.getSetMRrounds()		//get current number of rounds or set default, if undefined, and return it.
+	//	BigInteger.getSetMRrounds(10)	//set specified number of rounds, save it globally, and return it.
+
+	//MillerRabin probablistic primality check: errors = 1/(N^k), where N - is number value, k - number of iterations.
+    var MillerRabin = function (k, rng, n) { //n is optional bigint or number, when "this" is not bigint.
+		n = bigInt(n || this);
+        var isPrime = isBasicPrime(n);
         if (isPrime !== undefined) return isPrime;
-        var n = this.abs();
-        var t = iterations === undefined ? 5 : iterations;
+        var n = n.abs();
+        var t = k || getSetMRrounds();
         for (var a = [], i = 0; i < t; i++) {
             a.push(bigInt.randBetween(2, n.minus(2), rng)); //maybe need to make this odd, or moreover - primes, because primes in array are odd.
         }
         return millerRabinTest(n, a);
     };
-    SmallInteger.prototype.isProbablePrimeMR = BigInteger.prototype.isProbablePrimeMR;
-	//	console.log(new BigInteger('47').isPrime()); //Usage
+    Integer.isProbablePrime	=	Number.prototype.isProbablePrime	= SmallInteger.prototype.isProbablePrime	=	BigInteger.prototype.isProbablePrime = 
+    Integer.MillerRabin		=	Number.prototype.MillerRabin		= SmallInteger.prototype.MillerRabin		=	BigInteger.prototype.MillerRabin = 
+	MillerRabin;
+	//	Usage:
+	//	console.log(BigInteger.isProbablePrime(5, undefined, '47'));	// as BigInteger-function isProbablePrime
+	//	console.log((47).isProbablePrime(10));							// as Number-function isProbablePrime
+	//	console.log((new BigInteger('47')).isProbablePrime(20));		// as function for new BigInteger
+	//	console.log(BigInteger.MillerRabin(5, Math.random, '47'));		// as BigInteger-function MillerRabin
+	//	console.log((47).MillerRabin(10));								// as Number-function MillerRabin
+	//	console.log((bigInt('47')).MillerRabin(10));					// as function for new bigInt
 	
     BigInteger.prototype.modInv = function (n) {
         var t = bigInt.zero, newT = bigInt.one, r = parseValue(n), newR = this.abs(), q, lastT, lastR;
